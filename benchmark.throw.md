@@ -24,43 +24,50 @@ static int example_not_throw(int * i){
     return __default;
 }
 
+#define total 64
+
 int main() {
-    struct timespec start;
-    struct timespec end;
+    struct timespec _throw_start[total];
+    struct timespec _throw_end[total];
     int * p = nullptr;
     int s = 0;
     printf("example throw\n");
-    for(int i = 0; i < 64; i++){
-        clock_gettime(CLOCK_REALTIME, &start);
+    for(int i = 0; i < total; i++){
+        clock_gettime(CLOCK_REALTIME, &_throw_start[i]);
         try {
             s = example_throw(p);
         } catch(int & o) {
             s = __default;
-            clock_gettime(CLOCK_REALTIME, &end);
-            end.tv_sec -= start.tv_sec;
-            end.tv_nsec -= start.tv_nsec;
-            if(end.tv_nsec < 0)
+            clock_gettime(CLOCK_REALTIME, &_throw_end[i]);
+            _throw_end[i].tv_sec -= _throw_start[i].tv_sec;
+            _throw_end[i].tv_nsec -= _throw_start[i].tv_nsec;
+            if(_throw_end[i].tv_nsec < 0)
             {
-                end.tv_sec--;
-                end.tv_nsec += 1000000000;
+                _throw_end[i].tv_sec--;
+                _throw_end[i].tv_nsec += 1000000000;
             }
-            printf("%ld.%09ld\n", end.tv_sec, end.tv_nsec);
         }
     }
     printf("example if\n");
-
+    struct timespec _if_start[total];
+    struct timespec _if_end[total];
     for(int i = 0; i < 64; i++){
-        clock_gettime(CLOCK_REALTIME, &start);
+        clock_gettime(CLOCK_REALTIME, &_if_start[i]);
         s = example_not_throw(p);
-        clock_gettime(CLOCK_REALTIME, &end);
-        end.tv_sec -= start.tv_sec;
-        end.tv_nsec -= start.tv_nsec;
-        if(end.tv_nsec < 0)
+        clock_gettime(CLOCK_REALTIME, &_if_end[i]);
+        _if_end[i].tv_sec -= _if_start[i].tv_sec;
+        _if_end[i].tv_nsec -= _if_start[i].tv_nsec;
+        if(_if_end[i].tv_nsec < 0)
         {
-            end.tv_sec--;
-            end.tv_nsec += 1000000000;
+            _if_end[i].tv_sec--;
+            _if_end[i].tv_nsec += 1000000000;
         }
-        printf("%ld.%09ld\n", end.tv_sec, end.tv_nsec);
+
+    }
+    printf(    "| count | throw       | if          |\n");
+    printf(    "| ----- | ----------- | ----------- |\n");
+    for(int i = 0; i < 64; i++){
+        printf("|    %02d | %ld.%09ld | %ld.%09ld |\n", i, _throw_end[i].tv_sec, _throw_end[i].tv_nsec, _if_end[i].tv_sec, _if_end[i].tv_nsec);
     }
     return 0;
 }
